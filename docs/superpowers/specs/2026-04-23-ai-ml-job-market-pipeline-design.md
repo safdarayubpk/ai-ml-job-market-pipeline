@@ -103,7 +103,7 @@ Alembic manages schema migrations so the DB is version-controlled.
 - Output: cluster label per job, cluster size percentages
 
 **Step 3 — Seniority Classification (Supervised):**
-- Label ~150–200 jobs manually (or with LLM assistance) as junior/mid/senior
+- Label ~150–200 jobs as junior/mid/senior: use Claude API to pre-label each job based on title + description, then spot-check 20–30 samples manually to verify quality before training
 - Train and compare: Logistic Regression, SVM, Random Forest
 - Evaluate with F1 score; select best model
 - Output: predicted seniority per job, accuracy comparison table
@@ -112,7 +112,7 @@ Alembic manages schema migrations so the DB is version-controlled.
 - Count occurrence of 50+ predefined AI/ML skills across all listings
 - Output: ranked skill list with percentages
 
-### 5.4 LLM Insight Generator (Claude or OpenAI API)
+### 5.4 LLM Insight Generator (Claude API — Anthropic SDK)
 
 Constructs a structured prompt from pipeline outputs and calls the LLM API to generate a market intelligence briefing.
 
@@ -131,7 +131,7 @@ The prompt is templated (not hardcoded) so it can be adjusted without touching b
 
 ### 5.5 Google Sheets Reporter (gspread)
 
-- Authenticates via Google Service Account (JSON key)
+- Authenticates via Google Service Account (JSON key — requires a Google Cloud project with Sheets API enabled, service account created, and key file downloaded)
 - Per pipeline run: creates a new sheet tab named by date (e.g., "2026-04-23")
 - Tab contents:
   - Row 1: LLM-generated report text
