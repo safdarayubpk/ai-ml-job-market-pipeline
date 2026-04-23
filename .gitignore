@@ -1,0 +1,7 @@
+service_account.json
+.env
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+cluster_plot.png
