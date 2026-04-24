@@ -84,11 +84,12 @@ A portfolio project demonstrating end-to-end ML engineering: async API scraping,
 
 ```bash
 git clone <repo>
-cd ai-ml
-python3.12 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+cd ai-ml-job-market-pipeline
+uv venv venv --python 3.12
+uv pip install -r requirements.txt --python venv/bin/python3.12
 ```
+
+> **Note:** Use `uv` instead of `pip` — the system Python3.12 does not include `ensurepip` so `python3.12 -m venv` will fail. `uv` is available at `~/.local/bin/uv`.
 
 ### 2. Configure environment
 
@@ -157,20 +158,55 @@ A PCA cluster plot is saved to `cluster_plot.png`. The Google Sheet gets a new t
 
 ### Daily usage
 
-Run these two commands whenever you want fresh data:
+Two scripts handle everything. Open two terminals in the project folder:
+
+**Terminal 1 — start Docker + PostgreSQL + API server:**
 
 ```bash
-cd ~/Desktop/claude/ai-ml && source venv/bin/activate
-curl -X POST http://localhost:8000/run-pipeline
+./start.sh
 ```
 
-The server stays running in the background after the first `uvicorn` start. After a laptop restart, start it again first:
+Enter your sudo password when prompted (needed to start Docker engine). The script starts Docker, brings up the PostgreSQL container, and launches the API server. Leave this terminal open.
+
+**Terminal 2 — trigger the pipeline:**
 
 ```bash
-uvicorn api.main:app --port 8000 &
+./run_pipeline.sh
 ```
 
-Second and subsequent runs on the same day will show `jobs_scraped: 0` — this is correct. Deduplication prevents re-inserting the same jobs. The ML pipeline still runs on the full corpus and pushes a fresh report.
+Wait ~30–60 seconds. The result prints with the Google Sheets URL for today's report.
+
+---
+
+### Troubleshooting
+
+**`bad interpreter: No such file or directory` when running uvicorn**
+
+The venv was copied from another location — its internal paths are broken. Rebuild it:
+
+```bash
+uv venv venv --python 3.12
+uv pip install -r requirements.txt --python venv/bin/python3.12
+```
+
+**`Cannot connect to the Docker daemon`**
+
+Docker is trying to use Docker Desktop's socket. Switch to the system engine:
+
+```bash
+sudo systemctl start docker
+docker context use default
+```
+
+Then re-run `./start.sh`.
+
+**`jobs_scraped: 0` on second run**
+
+Expected — deduplication by URL is working. The ML pipeline still runs on the full accumulated corpus and pushes a fresh dated tab to Sheets.
+
+**`Pipeline failed: Connection error.`**
+
+Usually means PostgreSQL is not running. Check with `docker ps` and run `./start.sh` again.
 
 ---
 
